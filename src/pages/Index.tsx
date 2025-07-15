@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
-import { RouteCard } from "@/components/RouteCard";
+import { RouteList } from "@/components/RouteList";
 import { RouteFilters } from "@/components/RouteFilters";
 import { FacilityToggles } from "@/components/FacilityToggles";
 import { Map } from "@/components/Map";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { routes, facilities, Route } from "@/data/routes";
 import { Bike, Menu, X } from "lucide-react";
 
@@ -105,14 +107,12 @@ const Index = () => {
               <h2 className="text-lg font-semibold mb-4">
                 Routes ({filteredRoutes.length})
               </h2>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {filteredRoutes.map((route) => (
-                  <RouteCard
-                    key={route.id}
-                    route={route}
-                    onViewRoute={handleViewRoute}
-                  />
-                ))}
+              <ScrollArea className="h-96">
+                <RouteList
+                  routes={filteredRoutes}
+                  selectedRoute={selectedRoute}
+                  onRouteSelect={setSelectedRoute}
+                />
                 {filteredRoutes.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Bike className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -126,7 +126,7 @@ const Index = () => {
                     </Button>
                   </div>
                 )}
-              </div>
+              </ScrollArea>
             </Card>
           </div>
         </aside>
