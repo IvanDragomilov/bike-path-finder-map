@@ -1,22 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import { LatLngTuple, Icon, DivIcon } from 'leaflet';
+import { LatLngTuple, DivIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Route, Facility } from '@/data/routes';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LocateFixed } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface MapProps {
-  selectedRoute: Route | null;
-  facilities: Facility[];
-  facilityVisibility: {
-    equipment: boolean;
-    repair: boolean;
-    club: boolean;
-  };
-}
 
 // Fix Leaflet default markers
 import L from 'leaflet';
@@ -31,29 +21,53 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// Custom facility icons
-const createFacilityIcon = (type: string) => {
-  const colors = {
-    equipment: '#10b981',
-    repair: '#f59e0b', 
-    club: '#8b5cf6'
+interface MapProps {
+  selectedRoute: Route | null;
+  facilities: Facility[];
+  facilityVisibility: {
+    equipment: boolean;
+    repair: boolean;
+    club: boolean;
   };
-  
-  return new DivIcon({
-    html: `<div style="background-color: ${colors[type]}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>`,
-    className: 'custom-facility-marker',
-    iconSize: [20, 20],
-    iconAnchor: [10, 10]
-  });
-};
+}
 
-// User location marker
+// Create facility icons with explicit colors
+const equipmentIcon = new DivIcon({
+  html: '<div style="background-color: #10b981; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>',
+  className: 'custom-facility-marker',
+  iconSize: [20, 20],
+  iconAnchor: [10, 10]
+});
+
+const repairIcon = new DivIcon({
+  html: '<div style="background-color: #f59e0b; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>',
+  className: 'custom-facility-marker',
+  iconSize: [20, 20],
+  iconAnchor: [10, 10]
+});
+
+const clubIcon = new DivIcon({
+  html: '<div style="background-color: #8b5cf6; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>',
+  className: 'custom-facility-marker',
+  iconSize: [20, 20],
+  iconAnchor: [10, 10]
+});
+
 const userLocationIcon = new DivIcon({
   html: '<div style="background-color: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
   className: 'user-location-marker',
   iconSize: [16, 16],
   iconAnchor: [8, 8]
 });
+
+function getFacilityIcon(type: string) {
+  switch (type) {
+    case 'equipment': return equipmentIcon;
+    case 'repair': return repairIcon;
+    case 'club': return clubIcon;
+    default: return equipmentIcon;
+  }
+}
 
 function MapController({ selectedRoute }: { selectedRoute: Route | null }) {
   const map = useMap();
@@ -107,7 +121,6 @@ export function Map({ selectedRoute, facilities, facilityVisibility }: MapProps)
 
   const filteredFacilities = facilities.filter(facility => facilityVisibility[facility.type]);
   
-  // Convert route coordinates from [lng, lat] to [lat, lng] for Leaflet
   const routeCoordinates = selectedRoute 
     ? selectedRoute.coordinates.map(coord => [coord[1], coord[0]] as LatLngTuple)
     : [];
@@ -115,7 +128,7 @@ export function Map({ selectedRoute, facilities, facilityVisibility }: MapProps)
   return (
     <div className="relative h-full">
       <MapContainer
-        center={[50.8476, 4.9041]} // Center of Europe
+        center={[50.8476, 4.9041]}
         zoom={5}
         className="w-full h-full rounded-lg"
         zoomControl={true}
@@ -124,48 +137,9 @@ export function Map({ selectedRoute, facilities, facilityVisibility }: MapProps)
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-
-        {/* Route polyline */}
-        {selectedRoute && routeCoordinates.length > 0 && (
-          <Polyline
-            positions={routeCoordinates}
-            color="#2563eb"
-            weight={4}
-            opacity={0.8}
-          />
-        )}
-
-        {/* Facility markers */}
-        {filteredFacilities.map(facility => (
-          <Marker
-            key={facility.id}
-            position={[facility.coordinates[1], facility.coordinates[0]]}
-            icon={createFacilityIcon(facility.type)}
-          >
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-semibold text-sm">{facility.name}</h3>
-                <p className="text-xs text-muted-foreground mb-1">{facility.address}</p>
-                <p className="text-xs">{facility.description}</p>
-                <div className="flex items-center mt-1">
-                  <span className="text-xs">Rating: {facility.rating}/5</span>
-                </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {/* User location marker */}
-        {userLocation && (
-          <Marker position={userLocation} icon={userLocationIcon}>
-            <Popup>Your current location</Popup>
-          </Marker>
-        )}
-
         <MapController selectedRoute={selectedRoute} />
       </MapContainer>
       
-      {/* Location controls */}
       <div className="absolute top-4 left-4 space-y-2">
         <Button
           variant="secondary"
@@ -177,7 +151,6 @@ export function Map({ selectedRoute, facilities, facilityVisibility }: MapProps)
         </Button>
       </div>
       
-      {/* Route info overlay */}
       {selectedRoute && (
         <Card className="absolute bottom-4 left-4 p-4 bg-card/95 backdrop-blur">
           <h3 className="font-semibold text-sm mb-1">{selectedRoute.name}</h3>
