@@ -118,20 +118,12 @@ export function Map({ selectedRoute, facilities, facilityVisibility }: MapProps)
         center={[50.8476, 4.9041]} // Center of Europe
         zoom={5}
         className="w-full h-full rounded-lg"
-        zoomControl={false}
+        zoomControl={true}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        
-        {/* Navigation controls */}
-        <div className="leaflet-top leaflet-right">
-          <div className="leaflet-control-zoom leaflet-bar leaflet-control">
-            <a className="leaflet-control-zoom-in" href="#" title="Zoom in" role="button" aria-label="Zoom in">+</a>
-            <a className="leaflet-control-zoom-out" href="#" title="Zoom out" role="button" aria-label="Zoom out">−</a>
-          </div>
-        </div>
 
         {/* Route polyline */}
         {selectedRoute && routeCoordinates.length > 0 && (
